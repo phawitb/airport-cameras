@@ -177,12 +177,16 @@ def video_feed11():
 
 @app.route('/')
 def process2():
-    with open('n_person.csv') as file:
-        n_person = file.readline().split(',')
-        # n_person = [int(x.strip()) for x in n_person]
-        n_person = [x.strip() for x in n_person]
-        n = [int(x.split('|')[0]) for x in n_person]
-        t = [x.split('|')[1] for x in n_person]
+    if os.path.isfile('n_person.csv'):
+        with open('n_person.csv') as file:
+            n_person = file.readline().split(',')
+            # n_person = [int(x.strip()) for x in n_person]
+            n_person = [x.strip() for x in n_person]
+            n = [int(x.split('|')[0]) for x in n_person]
+            t = [x.split('|')[1] for x in n_person]
+    else:
+        n = [-1]*N_CAMERAS
+        t = ['']*N_CAMERAS
 
     return render_template('index.html',variable=n,variable2=t)
 
