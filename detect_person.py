@@ -14,7 +14,7 @@ import time
 import PIL.Image as Image
 import csv
 import os,glob
-import config
+import configparser
 
 def update_mongoDB(i,n_person,now):
     print(f'camera{i} n_person={n_person} time={now}')
@@ -34,7 +34,12 @@ def detect_persion(frame):
     return bboxs,n_person
 
 N_CAMERAS = 12
-model = torch.hub.load('ultralytics/yolov5', config.model)
+
+config = configparser.ConfigParser()
+
+config.read('config.ini')
+model_name = config.get('model','name')
+model = torch.hub.load('ultralytics/yolov5', model_name)
 
 dir = 'static/Image'
 if not os.path.exists(dir):
@@ -43,6 +48,12 @@ for file in os.scandir(dir):
     os.remove(file.path)
 
 while True:
+
+    config.read('config.ini')
+    if model_name != config.get('model','name'):
+        model = torch.hub.load('ultralytics/yolov5', model_name)
+        model_name = config.get('model','name')
+        print('load new model...',model_name)
 
     start = time.time()
     try:
@@ -89,91 +100,3 @@ while True:
         print('Can not find sever!')
         time.sleep(1)
         
-
-    
-
-
-
-
-
-
-
-
-
-
-
-#----------------------------------------------------
-
-# model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
-
-# def sent_sever(a):
-#     a = str(a).replace('[','').replace(']','')
-#     try:
-#         r = requests.post("http://127.0.0.1:5000/sent_data", data=a)
-#         return True
-#     except:
-#         return False
-
-
-# from io import BytesIO
-# import csv
-
-# while True:
-#     data = b'48958695427097097402529251103137444756'
-#     r = requests.post("http://127.0.0.1:5000/sent_data", data=data)
-#     time.sleep(2)
-
-# print('xxx')
-# print(type(image))
-# print(image)
-
-
-  
-# # path
-# path = r'C:\Users\Rajnish\Desktop\geeksforgeeks.png'
-  
-# # Reading an image in default mode
-# image = cv2.imread(path)
-  
-# # Window name in which image is displayed
-# window_name = 'image'
-  
-# Using cv2.imshow() method
-# Displaying the image
-# cv2.imshow(window_name, image)
-  
-# # waits for user to press any key
-# # (this is necessary to avoid Python kernel form crashing)
-# cv2.waitKey(0)
-  
-# # closing all open windows
-# cv2.destroyAllWindows()
-
-    # with open("imageToSave.png", "wb") as fh:
-    #     fh.write(img)
-
-# for (x,y,w,h) in bboxs:
-#     cv2.rectangle(frame, (x, y), (x + w, y + h), (255,0,0), 4)
-#     cv2.imshow(f"Output Frame", frame)
-
-# frame_b64 = base64.b64encode(frame)
-
-# a = '1,2,3'
-
-# cv2.imshow("image", frame)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
-
-    # if time.time() - start > 2 and sentSever:
-    #     sent_sever(p) 
-    #     start = time.time()
-
-    # time.sleep(1)
-        
-    
-
-    
-
-    # time.sleep(2)
-
-    # sentSever = False
