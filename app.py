@@ -8,19 +8,22 @@ import io
 import numpy as np
 import io
 import os,glob
+import configparser
 
 def create_sources(s):
     cameras = []
     for ss in s:
-        if ss.isdigit():
-            cameras.append(cv2.VideoCapture(int(ss)))
-        elif 'youtube' in ss:
-            cameras.append(CamGear(source=ss, stream_mode = True, logging=True).start()) # YouTube Video URL as input
-        else:  # elif 'rtsp' in ss:
-            cameras.append(cv2.VideoCapture(ss))  # use 0 for web camera
-            # camera = cv2.VideoCapture('rtsp://freja.hiof.no:1935/rtplive/_definst_/hessdalen03.stream')  # use 0 for web camera
-            # for cctv camera use rtsp://username:password@ip_address:554/user=username_password='password'_channel=channel_number_stream=0.sdp' instead of camera
-
+        try:
+            if ss.isdigit():
+                cameras.append(cv2.VideoCapture(int(ss)))
+            elif 'youtube' in ss:
+                cameras.append(CamGear(source=ss, stream_mode = True, logging=True).start()) # YouTube Video URL as input
+            else:  # elif 'rtsp' in ss:
+                cameras.append(cv2.VideoCapture(ss))  # use 0 for web camera
+                # camera = cv2.VideoCapture('rtsp://freja.hiof.no:1935/rtplive/_definst_/hessdalen03.stream')  # use 0 for web camera
+                # for cctv camera use rtsp://username:password@ip_address:554/user=username_password='password'_channel=channel_number_stream=0.sdp' instead of camera
+        except:
+            cameras.append(None)
     return cameras
 
 def get_frame(n):
@@ -68,6 +71,8 @@ N_CAMERAS = 12
 
 app = Flask(__name__)
 
+config = configparser.ConfigParser()
+
 dir = 'static/Image'
 for file in os.scandir(dir):
     os.remove(file.path)
@@ -111,7 +116,16 @@ def setting():
         numbers = file.readlines()
     numbers = [x.replace('"','') for x in numbers]
 
-    return render_template('setting.html',number=numbers)
+    config.read('config.ini')
+    model = config.get('model','name')
+    print(model,type(model))
+    options = []
+    for m in ['yolov5n','yolov5s','yolov5m','yolov5l','yolov5x']:
+        if m == model:
+            options.append(True)
+        else:
+            options.append(False)
+    return render_template('setting.html',number=numbers,option=options)
 
 @app.route('/setting',methods=['POST'])
 def setting_submit():
@@ -133,6 +147,13 @@ def setting_submit():
     dir = 'static/Image'
     for file in os.scandir(dir):
         os.remove(file.path)
+
+    option = request.form['options']
+
+    config.read('config.ini')
+    config.set('model', 'name', option)
+    with open('config.ini', 'w') as configfile:
+        config.write(configfile)
 
     cameras = create_sources(sources)
     
@@ -191,173 +212,7 @@ def process2():
     return render_template('index.html',variable=n,variable2=t)
 
 if __name__ == '__main__':
-    # app.run(debug=True)
-    app.run(host='0.0.0.0')
+    app.run(debug=True)
+    # app.run(host='0.0.0.0')
 
 
-
-
-
-#-----------------------------------
-
-# return render_template('setting.html',number=numbers[0],number1=numbers[1],number2=numbers[2])
-
-    # text = [request.form['text']]
-    # text1 = [request.form['text1']]
-    # text2 = [request.form['text2']]
-
-    # print('processed_text',text,text1,text2)
-    # row_list = [text,text1,text2]
-
-# with open('n_person.csv') as file:
-    #     n_person = file.readline().split(',')
-    #     n_person = [int(x.strip()) for x in n_person]
-
-
-# @app.route('/capture_video')
-# def process2():
-#     global cameras,detect_data
-
-#     with open('n_person.csv') as file:
-#         n_person = file.readline().split(',')
-#         n_person = [int(x.strip()) for x in n_person]
-
-#     with open("0.png", "rb") as image_file:
-#         encoded_string = base64.b64encode(image_file.read())
-#         encoded_string = encoded_string.decode('utf-8')
-
-
-#     txt = '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">'
-#     txt += '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">'
-#     txt += '<title>Live Streaming Demonstration</title></head><body>'
-#     txt = '<div class="container"><div class="row"><div class="col-lg-8  offset-lg-2"><h3 class="mt-5">Live Cameras</h3>'
-#     for i in range(len(cameras)):
-#         msg,data = get_frame(i)
-#         if msg == 'success':
-#             # txt += f'camera{i+1} n_persons={n_person[i]}<br>'
-#             # txt += "<img src='{{url_for('static', filename='0.png')}}' />"
-#             # # <img width="300" src="{{url_for("static", filename="0.png")}}">
-#             # txt += '<br>'
-#             # <img src= "{{url_for('static', filename='/Image/2.png')}}" width="40%"><br>
-#             txt += f'camera{i+1} n_persons={n_person[i]}<br><img width="300" src="{{url_for("static", filename="/Image/2.png")}}"><br>'
-#             # txt += f'camera{i+1} n_persons={n_person[i]}<br><img width="300" src="data:image/png;base64,{data}"><br>'
-#     txt += '</div></div></div></body></html>'
-#     return txt
-
-
-# from PIL import Image
-
-# def gen_frames():  # generate frame by frame from camera
-#     # while True:
-#     # Capture frame-by-frame
-#     success, frame = camera.read()  # read the camera frame
-#     if not success:
-#         pass
-#     else:
-#         ret, buffer = cv2.imencode('.jpg', frame)
-#         frame = buffer.tobytes()
-#         yield (b'--frame\r\n'
-#                 b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')  # concat frame one by one and show result
-
-
-
-    # return jsonify({
-    #            'msg': msg, 
-    #            'img': data
-    #       })
-    # return f'<img src="data:image/png;base64,{data}">'
-
-    # if img:
-    #     print(type(img))
-    #     img = bytes(img, encoding='utf-8')
-    #     img = base64.decodebytes(img)
-    #     img = np.array(Image.open(io.BytesIO(img))) 
-        # img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-
-    # detect_data = img
-
-    # print('Recieved from client')
-    # a = request.data
-    # print(a,type(a))
-    # a = a.decode("utf-8")
-    # print(a,type(a))
-
-    # print('Recieved from client: {}'.format(request.data))
-    # txt = ''
-
-
-# def process2():
-#     msg,data = get_frame(0)
-#     if msg == 'success':
-#         return f'<img src="data:image/png;base64,{data}">'
-
-    # success, frame = camera.read()  # read the camera frame
-    # if success:
-    #     ret, buffer = cv2.imencode('.jpg', frame)
-    #     data = buffer.tobytes()
-    #     data = base64.b64encode(data).decode()
-    
-        # return f'<img src="data:image/png;base64,{data}">'
-
-        # Capture frame-by-frame
-        # success, frame = cameras[n].read()  # read the camera frame
-
-# cameras = create_sources([0,'https://www.youtube.com/watch?v=DjdUEyjx8GM','https://www.youtube.com/watch?v=cCx8IoIU-6I'])
-
-# camera = cv2.VideoCapture(0)  # use 0 for web camera
-# # camera = cv2.VideoCapture('rtsp://freja.hiof.no:1935/rtplive/_definst_/hessdalen03.stream')  # use 0 for web camera
-# #  for cctv camera use rtsp://username:password@ip_address:554/user=username_password='password'_channel=channel_number_stream=0.sdp' instead of camera
-# # for local webcam use cv2.VideoCapture(0)
-
-# cam1 = CamGear(source='https://www.youtube.com/watch?v=DjdUEyjx8GM', stream_mode = True, logging=True).start() # YouTube Video URL as input
-# cam2 = CamGear(source='https://www.youtube.com/watch?v=cCx8IoIU-6I', stream_mode = True, logging=True).start() # YouTube Video URL as input
-
-# cameras = [cam1,camera,cam2]
-# from flask import Flask, request, jsonify
-
-# @app.route('/processing')
-# def process():
-
-#     success, frame = camera.read()  # read the camera frame
-#     # if not success:
-#     #     pass
-#     # else:
-#     if success:
-#         ret, buffer = cv2.imencode('.jpg', frame)
-#         data = buffer.tobytes()
-
-#     # file = request.files['image']
-    
-#     # img = Image.open(file.stream)
-#     # img = img.convert('L')   # ie. convert to grayscale
-
-#     #data = file.stream.read()
-#     #data = base64.b64encode(data).decode()
-    
-#     # buffer = io.BytesIO()
-#     # img.save(buffer, 'png')
-#     # buffer.seek(0)
-    
-#     # data = buffer.read()
-#     data = base64.b64encode(data).decode()
-
-
-    
-#     return jsonify({
-#                'msg': 'success', 
-#                'img': data
-#           })
-
-#     # return f'<img src="data:image/png;base64,{data}">'
-
-# @app.route('/get_image')
-# def get_image():
-#     response_pickled = {'scssc':12312}
-#     Response(response=response_pickled, status=200, mimetype="application/json")
-
-    # if request.args.get('type') == '1':
-    #    filename = 'ok.gif'
-    # else:
-    #    filename = 'error.gif'
-    # filename = 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/1600px-Image_created_with_a_mobile_phone.png'
-    # return send_file(filename, mimetype='image/gif')
