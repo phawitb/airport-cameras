@@ -74,6 +74,8 @@ app = Flask(__name__)
 config = configparser.ConfigParser()
 
 dir = 'static/Image'
+if not os.path.exists(dir):
+    os.makedirs(dir)
 for file in os.scandir(dir):
     os.remove(file.path)
 
