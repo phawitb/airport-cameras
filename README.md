@@ -13,5 +13,9 @@
 - cd airport-cameras
 - pipreqs
 
+#### Create environment.yml file via conda
+- conda env export > airport-cameras.yml
+- conda env create -f airport-cameras.yml
+
 
 
