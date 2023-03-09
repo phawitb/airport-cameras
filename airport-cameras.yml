@@ -1,4 +1,4 @@
-name: yolov7_tracking
+name: airport-cameras
 channels:
   - defaults
 dependencies:
