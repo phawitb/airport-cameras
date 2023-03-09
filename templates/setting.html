@@ -24,7 +24,13 @@
                 camera9 : <input name="text8" value={{ number[8] }}><br>
                 camera10 : <input name="text9" value={{ number[9] }}><br>
                 camera11 : <input name="text10" value={{ number[10] }}><br>
-                camera12 : <input name="text11" value={{ number[11] }}><br>
+                camera12 : <input name="text11" value={{ number[11] }}><br><br>
+                Model : 
+                <input type="radio" name="options" id="option1" value="yolov5n" {% if option[0] %}checked{% endif %}> yolov5n </input><br>
+                <input type="radio" name="options" id="option2" value="yolov5s" {% if option[1] %}checked{% endif %}> yolov5s </input><br>
+                <input type="radio" name="options" id="option3" value="yolov5m" {% if option[2] %}checked{% endif %}> yolov5m </input><br>
+                <input type="radio" name="options" id="option3" value="yolov5l" {% if option[3] %}checked{% endif %}> yolov5l </input><br>
+                <input type="radio" name="options" id="option3" value="yolov5x" {% if option[4] %}checked{% endif %}> yolov5x </input><br>
                 <input type="submit">
             </form>
         </div>
