@@ -64,14 +64,13 @@ while True:
         for i in data.keys():
             img = data[i]['img']
             msg = data[i]['msg']
-
+            now = datetime.now()
             if msg == 'success':
                 img = bytes(img, encoding='utf-8')
                 img = base64.decodebytes(img)
                 img = np.array(Image.open(io.BytesIO(img))) 
                 frame = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-
-                now = datetime.now()
+                
                 bboxs,n_person = detect_persion(frame)
 
                 for (x,y,w,h) in bboxs:
