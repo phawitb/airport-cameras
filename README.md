@@ -17,5 +17,14 @@
 - conda env export > airport-cameras.yml
 - conda env create -f airport-cameras.yml
 
+### Crontab
+- crontab -e
+
+- SHELL=/bin/sh
+- HOME=/home/phawit/test/
+- */1 * * * * /home/phawit/anaconda3/bin/python /home/phawit/test/test.py
+
+- sudo /etc/init.d/cron restart
+
 
 
